@@ -1,0 +1,67 @@
+(function() {
+    'use strict';
+
+    function addVolumeControl(video) {
+        const controlDiv = document.createElement('div');
+        controlDiv.style.position = 'absolute';
+        controlDiv.style.top = '10px';
+        controlDiv.style.right = '10px';
+        controlDiv.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        controlDiv.style.color = 'white';
+        controlDiv.style.padding = '10px';
+        controlDiv.style.borderRadius = '5px';
+        controlDiv.style.zIndex = '9999';
+
+        const volumeLabel = document.createElement('label');
+        volumeLabel.textContent = 'Volume:';
+        controlDiv.appendChild(volumeLabel);
+
+        const volumeInput = document.createElement('input');
+        volumeInput.type = 'range';
+        volumeInput.min = '0';
+        volumeInput.max = '500';
+        volumeInput.value = '100';
+        volumeInput.style.marginLeft = '10px';
+        volumeInput.style.width = '150px';
+        controlDiv.appendChild(volumeInput);
+
+        const volumeDisplay = document.createElement('span');
+        volumeDisplay.textContent = '100%';
+        volumeDisplay.style.marginLeft = '10px';
+        controlDiv.appendChild(volumeDisplay);
+
+        document.body.appendChild(controlDiv);
+
+        function updateVolume() {
+            const volume = volumeInput.value / 100;
+            video.volume = Math.min(volume, 1);
+            video.muted = volume === 0; // Mute if volume is 0
+            volumeDisplay.textContent = `${volumeInput.value}%`;
+        }
+
+        volumeInput.addEventListener('input', updateVolume);
+
+        // Initial update
+        updateVolume();
+    }
+
+    // Observe DOM changes to find new video elements
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.tagName === 'VIDEO') {
+                    addVolumeControl(node);
+                }
+                const videos = node.querySelectorAll ? node.querySelectorAll('video') : [];
+                videos.forEach((video) => addVolumeControl(video));
+            });
+        });
+    });
+
+    // Start observing the document body
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Add custom volume control to existing videos
+    const existingVideos = document.querySelectorAll('video');
+    existingVideos.forEach((video) => addVolumeControl(video));
+})();
