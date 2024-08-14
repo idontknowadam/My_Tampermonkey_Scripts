@@ -1,0 +1,79 @@
+// ==UserScript==
+// @name         YouTube Speed Controller
+// @namespace    http://tampermonkey.net/
+// @version      1.1
+// @description  Add a control panel to adjust YouTube video playback speed and hide it while playing
+// @author       Your Name
+// @match        *://www.youtube.com/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Speed options
+    const speeds = [0.5, 1, 1.25, 1.5, 1.75, 2, 4];
+
+    // Create the control panel
+    const controlPanel = document.createElement('div');
+    controlPanel.style.position = 'fixed';
+    controlPanel.style.bottom = '10px';
+    controlPanel.style.right = '10px';
+    controlPanel.style.padding = '10px';
+    controlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    controlPanel.style.color = '#fff';
+    controlPanel.style.borderRadius = '5px';
+    controlPanel.style.zIndex = '10000';
+    controlPanel.style.display = 'flex';
+    controlPanel.style.flexDirection = 'column';
+    controlPanel.style.display = 'none'; // Start hidden
+
+    controlPanel.innerHTML = '<strong>Speed Control</strong>';
+
+    // Add buttons for each speed option
+    speeds.forEach(function(speed) {
+        const button = document.createElement('button');
+        button.innerText = speed + 'x';
+        button.style.margin = '5px 0';
+        button.style.padding = '5px 10px';
+        button.style.backgroundColor = '#444';
+        button.style.color = '#fff';
+        button.style.border = 'none';
+        button.style.borderRadius = '3px';
+        button.style.cursor = 'pointer';
+
+        button.onclick = function() {
+            const video = document.querySelector('video');
+            if (video) {
+                video.playbackRate = speed;
+                video.focus(); // Ensure video is in focus for control
+            }
+        };
+
+        controlPanel.appendChild(button);
+    });
+
+    // Add the control panel to the document
+    document.body.appendChild(controlPanel);
+
+    // Show/hide control panel based on video playback status
+    function updateControlPanelVisibility() {
+        const video = document.querySelector('video');
+        if (video) {
+            controlPanel.style.display = video.paused ? 'flex' : 'none';
+        }
+    }
+
+    // Check video status and update control panel visibility on load
+    setInterval(updateControlPanelVisibility, 1000);
+
+    // Add event listener to update visibility when playback status changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const video = document.querySelector('video');
+        if (video) {
+            video.addEventListener('play', updateControlPanelVisibility);
+            video.addEventListener('pause', updateControlPanelVisibility);
+        }
+    });
+
+})();
