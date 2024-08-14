@@ -1,0 +1,65 @@
+// ==UserScript==
+// @name         Multi-Item Clipboard
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Copy multiple items and choose which to paste
+// @author       idontknowadam
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Array to hold copied items
+    let clipboard = [];
+
+    // Function to copy selected text
+    function copySelectedText() {
+        const selectedText = window.getSelection().toString();
+        if (selectedText) {
+            clipboard.push(selectedText);
+            alert('Text copied to clipboard array. Items in clipboard: ' + clipboard.length);
+        }
+    }
+
+    // Function to paste items from the clipboard array
+    function pasteItem(index) {
+        if (clipboard[index] !== undefined) {
+            navigator.clipboard.writeText(clipboard[index]).then(function() {
+                alert('Pasted item ' + (index + 1) + ' from clipboard: ' + clipboard[index]);
+            }, function(err) {
+                alert('Could not paste text: ' + err);
+            });
+        } else {
+            alert('No item at this index!');
+        }
+    }
+
+    // Add copy option to context menu
+    document.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+
+        const menu = document.createElement('menu');
+        menu.type = 'context';
+        menu.id = 'clipboardMenu';
+
+        const copyMenuItem = document.createElement('menuitem');
+        copyMenuItem.label = 'Copy to Multi-Clipboard';
+        copyMenuItem.onclick = copySelectedText;
+
+        const pasteMenuItem = document.createElement('menuitem');
+        pasteMenuItem.label = 'Paste from Multi-Clipboard';
+        pasteMenuItem.onclick = function() {
+            let index = prompt('Enter the clipboard item number to paste (1-' + clipboard.length + '):');
+            if (index) pasteItem(parseInt(index) - 1);
+        };
+
+        menu.appendChild(copyMenuItem);
+        menu.appendChild(pasteMenuItem);
+        document.body.appendChild(menu);
+
+        document.body.setAttribute('contextmenu', menu.id);
+    });
+
+})();
